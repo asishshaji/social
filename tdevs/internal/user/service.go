@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"fmt"
+	"os"
 	"tdevs/data"
 	"tdevs/internal/cache"
 	"time"
@@ -14,18 +15,37 @@ import (
 )
 
 type userService struct {
-	repo  IUserRepo
-	cache cache.ICache
+	repo      IUserRepo
+	JWTSecret string
+	cache     cache.ICache
+	usernames chan string
 }
 
 func NewUserService(repo IUserRepo, cache cache.ICache) userService {
-	return userService{
-		repo:  repo,
-		cache: cache,
+
+	uS := userService{
+		repo:      repo,
+		cache:     cache,
+		JWTSecret: os.Getenv("JWT_SECRET"),
+		usernames: make(chan string, 100),
+	}
+
+	go uS.generateRandomUsernames()
+
+	return uS
+}
+
+func (uS userService) generateRandomUsernames() {
+	for {
+		if len(uS.usernames) < 30 {
+			uS.usernames <- petname.Generate(2, "_")
+		} else {
+			time.Sleep(time.Second * 2)
+		}
 	}
 }
 
-func (s userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, error) {
+func (uS userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, error) {
 	retryCount := 5
 	exists := true
 
@@ -34,8 +54,10 @@ func (s userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, er
 	var err error
 
 	for exists {
-		u.Username = petname.Generate(2, "_")
-		exists, err = s.repo.CheckUserNameExists(c.Request().Context(), u.Username)
+		// run a goroutine that pushes names to a channel,
+		// sort of prepopulate random names
+		u.Username = <-uS.usernames
+		exists, err = uS.repo.CheckUserNameExists(c.Request().Context(), u.Username)
 		if err != nil {
 			return u, err
 		}
@@ -53,7 +75,7 @@ func (s userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, er
 	}
 	u.Password = string(hashedPassword)
 
-	err = s.repo.InsertUser(c.Request().Context(), u)
+	err = uS.repo.InsertUser(c.Request().Context(), u)
 	if err != nil {
 		return u, fmt.Errorf("error creating u %s", err)
 	}
@@ -62,9 +84,9 @@ func (s userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, er
 
 }
 
-func (s userService) Login(c echo.Context, uDto data.UserLoginDTO) (data.UserLoginResponse, error) {
+func (uS userService) Login(c echo.Context, uDto data.UserLoginDTO) (data.UserLoginResponse, error) {
 	res := data.UserLoginResponse{}
-	hashedPassword, err := s.repo.GetUserPassword(c.Request().Context(), uDto.Username)
+	hashedPassword, err := uS.repo.GetUserPassword(c.Request().Context(), uDto.Username)
 	if err != nil {
 		res.StatusCode = 404
 		return res, fmt.Errorf("error getting user : %s", err)
@@ -83,7 +105,7 @@ func (s userService) Login(c echo.Context, uDto data.UserLoginDTO) (data.UserLog
 	claims["user"] = uDto.Username
 	claims["authorized"] = true
 
-	tokenStr, err := token.SignedString([]byte("ASD"))
+	tokenStr, err := token.SignedString([]byte(uS.JWTSecret))
 	if err != nil {
 		res.StatusCode = 500
 		return res, fmt.Errorf("error generating access token : %s", err)
@@ -96,7 +118,7 @@ func (s userService) Login(c echo.Context, uDto data.UserLoginDTO) (data.UserLog
 	refreshClaims["user"] = uDto.Username
 	refreshClaims["authorized"] = true
 
-	refreshTokenStr, err := refreshToken.SignedString([]byte("ASD"))
+	refreshTokenStr, err := refreshToken.SignedString([]byte(uS.JWTSecret))
 	if err != nil {
 		res.StatusCode = 500
 		return res, fmt.Errorf("error generating refresh token : %s", err)
@@ -106,8 +128,6 @@ func (s userService) Login(c echo.Context, uDto data.UserLoginDTO) (data.UserLog
 	res.RefreshToken = refreshTokenStr
 	res.StatusCode = 200
 
-	// TODO persistence for session
-	// https://redis.com/blog/json-web-tokens-jwt-are-dangerous-for-user-sessions/
-	s.cache.SetAuthenticatedUser(c.Request().Context(), uDto.Username)
+	uS.cache.SetAuthenticatedUser(c.Request().Context(), uDto.Username)
 	return res, nil
 }

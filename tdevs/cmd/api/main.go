@@ -12,7 +12,6 @@ import (
 	"github.com/joho/godotenv"
 
 	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -40,7 +39,7 @@ func main() {
 	uH := user.NewUserHandler(uS)
 
 	e := echo.New()
-	e.Use(middleware.Logger())
+	// e.Use(middleware.Logger())
 
 	api := e.Group("/api")
 
@@ -49,7 +48,7 @@ func main() {
 	api.POST("/login", uH.Login)
 
 	// restricted := api.Group("")
-	// restricted.Use(echojwt.JWT([]byte("ASD")))
+	// restricted.Use(echojwt.JWT([]byte(os.Getenv("JWT_SECRET")))
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
