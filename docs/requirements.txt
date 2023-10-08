@@ -1,0 +1,5 @@
+[] authentication and authorization
+[] ability to make a post
+[] comment on post
+[] View timeline
+[] Join subgroups
