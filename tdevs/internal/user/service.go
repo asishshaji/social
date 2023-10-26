@@ -3,7 +3,6 @@ package user
 import (
 	"errors"
 	"fmt"
-	"os"
 	"tdevs/data"
 	"tdevs/internal/cache"
 	"time"
@@ -18,31 +17,16 @@ type userService struct {
 	repo      IUserRepo
 	JWTSecret string
 	cache     cache.ICache
-	usernames chan string
 }
 
-func NewUserService(repo IUserRepo, cache cache.ICache) userService {
-
+func NewUserService(repo IUserRepo, cache cache.ICache, jwt_secret string) userService {
 	uS := userService{
 		repo:      repo,
 		cache:     cache,
-		JWTSecret: os.Getenv("JWT_SECRET"),
-		usernames: make(chan string, 100),
+		JWTSecret: jwt_secret,
 	}
-
-	go uS.generateRandomUsernames()
 
 	return uS
-}
-
-func (uS userService) generateRandomUsernames() {
-	for {
-		if len(uS.usernames) < 30 {
-			uS.usernames <- petname.Generate(2, "_")
-		} else {
-			time.Sleep(time.Second * 2)
-		}
-	}
 }
 
 func (uS userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, error) {
@@ -54,9 +38,8 @@ func (uS userService) CreateUser(c echo.Context, dto data.UserDTO) (data.User, e
 	var err error
 
 	for exists {
-		// run a goroutine that pushes names to a channel,
-		// sort of prepopulate random names
-		u.Username = <-uS.usernames
+		u.Username = petname.Generate(2, "_")
+
 		exists, err = uS.repo.CheckUserNameExists(c.Request().Context(), u.Username)
 		if err != nil {
 			return u, err

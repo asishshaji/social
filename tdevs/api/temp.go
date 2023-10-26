@@ -1,4 +1,4 @@
-package main
+package api
 
 import (
 	"log"
@@ -11,6 +11,7 @@ import (
 
 	"github.com/joho/godotenv"
 
+	echojwt "github.com/labstack/echo-jwt"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
 )
@@ -32,10 +33,11 @@ func main() {
 		log.Fatalf("db failed %s", err)
 	}
 	cache := cache.NewRedisCache(&redis.Options{})
+	jwt_secret := os.Getenv("JWT_SECRET")
 
 	repo := user.NewUserRepo(log.Default(), dbConn)
 
-	uS := user.NewUserService(repo, cache)
+	uS := user.NewUserService(repo, cache, jwt_secret)
 	uH := user.NewUserHandler(uS)
 
 	e := echo.New()
@@ -47,8 +49,8 @@ func main() {
 	api.POST("/register", uH.RegisterUser)
 	api.POST("/login", uH.Login)
 
-	// restricted := api.Group("")
-	// restricted.Use(echojwt.JWT([]byte(os.Getenv("JWT_SECRET")))
+	restricted := api.Group("")
+	restricted.Use(echojwt.JWT([]byte(os.Getenv("JWT_SECRET"))))
 
 	e.Logger.Fatal(e.Start(":3000"))
 }
