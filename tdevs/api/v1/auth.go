@@ -23,7 +23,7 @@ type Login struct {
 
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refersh_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (api *APIV1Service) registerAuthRoutes(group *echo.Group) {
@@ -122,5 +122,5 @@ func generateToken(username, secret string, duration time.Duration) (string, err
 	claims["username"] = username
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secret)
+	return token.SignedString([]byte(secret))
 }

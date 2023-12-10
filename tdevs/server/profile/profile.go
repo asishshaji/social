@@ -38,6 +38,7 @@ func GetProfile() (*Profile, error) {
 	profile.Addr = "localhost"
 	profile.Port = 8080
 	profile.Driver = POSTGRESQL
+	profile.JWT_Secret = "secret"
 	profile.DSN = fmt.Sprintf("user=%s dbname=%s password=pass sslmode=disable", "postgres", "tdevs")
 
 	return profile, nil

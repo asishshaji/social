@@ -37,7 +37,10 @@ func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (s *Store) CheckUserExists(ctx context.Context, username string) bool {
-	user, _ := s.driver.GetUser(ctx, username)
+	user, err := s.driver.GetUser(ctx, username)
+	if err != nil {
+		return false
+	}
 	return user.Username == username
 }
 
