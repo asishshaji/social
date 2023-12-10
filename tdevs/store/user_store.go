@@ -32,3 +32,7 @@ func (s *Store) CheckUserExists(ctx context.Context, username string) bool {
 func (s *Store) GetUser(ctx context.Context, username string) (*User, error) {
 	return s.driver.GetUser(ctx, username)
 }
+
+func (s *Store) AddUserToCache(username string) {
+	s.users.Store(username, true)
+}

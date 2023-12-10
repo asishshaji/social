@@ -19,7 +19,3 @@ func NewStore(driver IDriver, profile *profile.Profile) *Store {
 func (s *Store) Close() error {
 	return nil
 }
-
-func (s *Store) AddUserToCache(username string) {
-	s.users.Store(username, true)
-}

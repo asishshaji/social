@@ -93,11 +93,11 @@ func (api *APIV1Service) signin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 
-	accessToken, err := generateToken(user.Username, "ASD", 10*time.Minute)
+	accessToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Minute)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	refreshToken, err := generateToken(user.Username, "ASD", 10*time.Hour*24)
+	refreshToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Hour*24)
 
 	if err != nil {
 		return echo.ErrInternalServerError

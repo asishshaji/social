@@ -14,7 +14,8 @@ func NewDBDriver(profile *p.Profile) (store.IDriver, error) {
 	switch profile.Driver {
 	case p.POSTGRESQL:
 		{
-			driver, err = postgresql.NewDB()
+			driver, err = postgresql.NewDB(string(profile.Driver), profile.DSN)
+
 		}
 	}
 
