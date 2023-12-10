@@ -8,17 +8,16 @@ import (
 	"tdevs/store"
 )
 
-func (db *PostgresDB) CreateUser(ctx context.Context, user *store.User) error {
-	db.db.Exec("INSERT INTO USERS (username, hashed_password, company, created_at, updated_at) VALUES ($1, $2,$3,$4,$5)",
-		user.Username, user.Hashed_Password, user.Company, user.Created_At, user.Updated_At)
-	return nil
+func (postgres *PostgresDB) CreateUser(ctx context.Context, user *store.User) error {
+	_, err := postgres.db.Exec("INSERT INTO USERS (username, HashedPassword, company, CreatedAt, UpdatedAt) VALUES ($1, $2,$3,$4,$5)",
+		user.Username, user.HashedPassword, user.Company, user.CreatedAt, user.UpdatedAt)
+	return err
 }
 
-func (db *PostgresDB) GetUser(ctx context.Context, username string) (*store.User, error) {
-
+func (postgres *PostgresDB) GetUser(ctx context.Context, username string) (*store.User, error) {
 	users := []store.User{}
 
-	err := db.db.Select(&users, "SELECT * from users where username=$1 LIMIT 1", username)
+	err := postgres.db.Select(&users, "SELECT * FROM WHERE username=$1 LIMIT 1", username)
 	if err != nil {
 		fmt.Println(err)
 		return nil, err

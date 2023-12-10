@@ -5,18 +5,29 @@ import (
 	"time"
 )
 
+type status string
+
+const (
+	ENABLED_STATUS     status = "enabled"
+	DISABLED_STATUS    status = "disabled"
+	BLACKLISTED_STATUS status = "blacklisted"
+)
+
 type User struct {
-	ID              int32
-	Username        string
-	Hashed_Password string
-	Company         string
-	Created_At      time.Time
-	Updated_At      time.Time
+	ID             int32     `db:"id"`
+	Username       string    `db:"username"`
+	HashedPassword string    `db:"hashed_password"`
+	Status         status    `db:"status"`
+	Company        string    `db:"company"`
+	CreatedAt      time.Time `db:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at"`
 }
 
 func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
-	user.Created_At = time.Now()
-	user.Updated_At = time.Now()
+	user.CreatedAt = time.Now()
+	user.UpdatedAt = time.Now()
+	user.Status = ENABLED_STATUS
+
 	err := s.driver.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
@@ -26,9 +37,8 @@ func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (s *Store) CheckUserExists(ctx context.Context, username string) bool {
-	_, _ = s.driver.GetUser(ctx, username)
-
-	return false
+	user, _ := s.driver.GetUser(ctx, username)
+	return user.Username == username
 }
 
 func (s *Store) GetUser(ctx context.Context, username string) (*User, error) {

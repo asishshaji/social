@@ -6,7 +6,7 @@ DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (
   username varchar(40) PRIMARY KEY,
-  password varchar(120) NOT NULL,
+  hashed_password varchar(120) NOT NULL,
   company varchar(30) NOT NULL,
   status user_status NOT NULL DEFAULT 'enabled',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
