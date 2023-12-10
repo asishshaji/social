@@ -7,7 +7,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type DB struct {
+type PostgresDB struct {
 	db *sqlx.DB
 }
 
@@ -16,7 +16,7 @@ func NewDB(drivername string, dSN string) (store.IDriver, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &DB{
+	return &PostgresDB{
 		db: db,
 	}, nil
 }

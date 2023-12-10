@@ -6,16 +6,18 @@ import (
 )
 
 type User struct {
-	ID             int32
-	Username       string
-	HashedPassword string
-	Company        string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	ID              int32
+	Username        string
+	Hashed_Password string
+	Company         string
+	Created_At      time.Time
+	Updated_At      time.Time
 }
 
 func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
-	user, err := s.driver.CreateUser(ctx, user)
+	user.Created_At = time.Now()
+	user.Updated_At = time.Now()
+	err := s.driver.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -24,9 +26,9 @@ func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (s *Store) CheckUserExists(ctx context.Context, username string) bool {
-	user, _ := s.driver.GetUser(ctx, username)
+	_, _ = s.driver.GetUser(ctx, username)
 
-	return user.Username == username
+	return false
 }
 
 func (s *Store) GetUser(ctx context.Context, username string) (*User, error) {

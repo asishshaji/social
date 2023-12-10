@@ -36,7 +36,11 @@ func (api *APIV1Service) signup(c echo.Context) error {
 
 	signUp := SignUp{}
 	if err := c.Bind(&signUp); err != nil {
-		return c.JSON(http.StatusBadRequest, "bad request")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+	if signUp.Company == "" || signUp.Password == "" {
+
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(signUp.Password), bcrypt.DefaultCost)
@@ -61,9 +65,9 @@ func (api *APIV1Service) signup(c echo.Context) error {
 	}
 
 	user, err := api.Store.CreateUser(ctx, &store.User{
-		Username:       signUp.Company,
-		Company:        signUp.Company,
-		HashedPassword: string(passwordHash),
+		Username:        username,
+		Company:         signUp.Company,
+		Hashed_Password: string(passwordHash),
 	})
 
 	if err != nil {
@@ -88,7 +92,7 @@ func (api *APIV1Service) signin(c echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.HashedPassword), []byte(login.Password))
+	err = bcrypt.CompareHashAndPassword([]byte(user.Hashed_Password), []byte(login.Password))
 	if err != nil {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
