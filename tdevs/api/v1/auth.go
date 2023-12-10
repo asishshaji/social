@@ -23,7 +23,7 @@ type Login struct {
 
 type LoginResponse struct {
 	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refersh_token"`
+	RefreshToken string `json:"refresh_token"`
 }
 
 func (api *APIV1Service) registerAuthRoutes(group *echo.Group) {
@@ -36,7 +36,11 @@ func (api *APIV1Service) signup(c echo.Context) error {
 
 	signUp := SignUp{}
 	if err := c.Bind(&signUp); err != nil {
-		return c.JSON(http.StatusBadRequest, "bad request")
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+	}
+
+	if signUp.Company == "" || signUp.Password == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "bad request"})
 	}
 
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(signUp.Password), bcrypt.DefaultCost)
@@ -61,7 +65,7 @@ func (api *APIV1Service) signup(c echo.Context) error {
 	}
 
 	user, err := api.Store.CreateUser(ctx, &store.User{
-		Username:       signUp.Company,
+		Username:       username,
 		Company:        signUp.Company,
 		HashedPassword: string(passwordHash),
 	})
@@ -93,11 +97,11 @@ func (api *APIV1Service) signin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 
-	accessToken, err := generateToken(user.Username, "ASD", 10*time.Minute)
+	accessToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Minute)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	refreshToken, err := generateToken(user.Username, "ASD", 10*time.Hour*24)
+	refreshToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Hour*24)
 
 	if err != nil {
 		return echo.ErrInternalServerError
@@ -118,5 +122,5 @@ func generateToken(username, secret string, duration time.Duration) (string, err
 	claims["username"] = username
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(secret)
+	return token.SignedString([]byte(secret))
 }

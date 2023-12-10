@@ -1,5 +1,7 @@
 package profile
 
+import "fmt"
+
 type Mode string
 type Driver string
 
@@ -9,7 +11,7 @@ const (
 )
 
 const (
-	POSTGRESQL Driver = "POSTGRESQL"
+	POSTGRESQL Driver = "postgres"
 )
 
 type Profile struct {
@@ -25,14 +27,19 @@ type Profile struct {
 	Driver Driver `json:"driver"`
 	//application version
 	Version string `json:"version"`
+	//JWT secret
+	JWT_Secret string `json:"secret"`
 }
 
 func GetProfile() (*Profile, error) {
+	// TODO read from .env
 	profile := new(Profile)
 
 	profile.Addr = "localhost"
 	profile.Port = 8080
 	profile.Driver = POSTGRESQL
+	profile.JWT_Secret = "secret"
+	profile.DSN = fmt.Sprintf("user=%s dbname=%s password=pass sslmode=disable", "postgres", "tdevs")
 
 	return profile, nil
 }
