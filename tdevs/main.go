@@ -14,7 +14,11 @@ import (
 )
 
 func main() {
-	profile, _ := profile.GetProfile()
+	profile, err := profile.GetProfile()
+	if err != nil {
+		fmt.Printf("error starting server : %s", err.Error())
+		os.Exit(0)
+	}
 	ctx, cancel := context.WithCancel(context.Background())
 	dbDriver, _ := db.NewDBDriver(profile)
 	store := store.NewStore(dbDriver, profile)

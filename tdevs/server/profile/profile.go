@@ -1,6 +1,13 @@
 package profile
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+	"os"
+	"strconv"
+
+	"github.com/joho/godotenv"
+)
 
 type Mode string
 type Driver string
@@ -32,13 +39,24 @@ type Profile struct {
 }
 
 func GetProfile() (*Profile, error) {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+		return nil, err
+	}
+
 	// TODO read from .env
 	profile := new(Profile)
 
-	profile.Addr = "localhost"
-	profile.Port = 8080
-	profile.Driver = POSTGRESQL
-	profile.JWT_Secret = "secret"
+	profile.Addr = os.Getenv("APP_URL")
+	port, err := strconv.Atoi(os.Getenv("APP_PORT"))
+	if err != nil {
+		return nil, err
+	}
+	profile.Port = port
+	profile.Driver = Driver(os.Getenv("DB_TYPE"))
+	profile.JWT_Secret = os.Getenv("JWT_SECRET")
 	profile.DSN = fmt.Sprintf("user=%s dbname=%s password=pass sslmode=disable", "postgres", "tdevs")
 
 	return profile, nil
