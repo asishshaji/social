@@ -14,7 +14,7 @@ func (postgres *PostgresDB) CreateUser(ctx context.Context, user *store.User) er
 	return err
 }
 
-func (postgres *PostgresDB) GetUser(ctx context.Context, username string) (*store.User, error) {
+func (postgres *PostgresDB) GetUserByUsername(ctx context.Context, username string) (*store.User, error) {
 	users := []store.User{}
 
 	err := postgres.db.Select(&users, "SELECT * FROM users WHERE username=$1 LIMIT 1", username)
@@ -28,4 +28,28 @@ func (postgres *PostgresDB) GetUser(ctx context.Context, username string) (*stor
 	}
 
 	return &users[0], nil
+}
+
+func (postgres *PostgresDB) GetUserByID(ctx context.Context, u_id int32) (*store.User, error) {
+	users := []store.User{}
+
+	err := postgres.db.Select(&users, "SELECT * FROM users WHERE id=$1 LIMIT 1", u_id)
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+
+	if len(users) == 0 {
+		return nil, errors.New("user does not exist")
+	}
+
+	return &users[0], nil
+}
+
+func (postgres *PostgresDB) GetGroupsForUser(ctx context.Context, user_id int32) []store.Group {
+	groups := []store.Group{}
+
+	// err := postgres.db.Select(&groups, "SELECT * FROM groups WHERE =$1 LIMIT 1", username)
+
+	return groups
 }

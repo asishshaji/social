@@ -87,7 +87,7 @@ func (api *APIV1Service) signin(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "bad request")
 	}
 
-	user, err := api.Store.GetUser(ctx, login.Username)
+	user, err := api.Store.GetUserByUsername(ctx, login.Username)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
@@ -97,11 +97,11 @@ func (api *APIV1Service) signin(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusUnauthorized, "invalid credentials")
 	}
 
-	accessToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Minute)
+	accessToken, err := generateToken(user.ID, api.Profile.JWT_Secret, 10*time.Minute)
 	if err != nil {
 		return echo.ErrInternalServerError
 	}
-	refreshToken, err := generateToken(user.Username, api.Profile.JWT_Secret, 10*time.Hour*24)
+	refreshToken, err := generateToken(user.ID, api.Profile.JWT_Secret, 10*time.Hour*24)
 
 	if err != nil {
 		return echo.ErrInternalServerError
@@ -116,10 +116,10 @@ func (api *APIV1Service) signin(c echo.Context) error {
 
 }
 
-func generateToken(username, secret string, duration time.Duration) (string, error) {
+func generateToken(u_id int32, secret string, duration time.Duration) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["exp"] = time.Now().Add(duration).Unix()
-	claims["username"] = username
+	claims["u_id"] = u_id
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(secret))

@@ -12,19 +12,19 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type server struct {
+type Server struct {
 	e       *echo.Echo
 	Profile *profile.Profile
 	Store   *store.Store
 }
 
-func NewServer(ctx context.Context, profile *profile.Profile, store *store.Store) (*server, error) {
+func NewServer(ctx context.Context, profile *profile.Profile, store *store.Store) (*Server, error) {
 	e := echo.New()
 	e.Use(middleware.Recover())
 	e.Use(middleware.Logger())
 	e.Use(middleware.CORS())
 
-	s := server{
+	s := Server{
 		e:       e,
 		Store:   store,
 		Profile: profile,
@@ -37,11 +37,11 @@ func NewServer(ctx context.Context, profile *profile.Profile, store *store.Store
 	return &s, nil
 }
 
-func (s *server) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	return s.e.Start(fmt.Sprintf("%s:%d", s.Profile.Addr, s.Profile.Port))
 }
 
-func (s *server) Shutdown(ctx context.Context) {
+func (s *Server) Shutdown(ctx context.Context) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 

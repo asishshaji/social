@@ -14,13 +14,20 @@ const (
 )
 
 type User struct {
-	ID             int32     `db:"id"`
-	Username       string    `db:"username"`
-	HashedPassword string    `db:"hashed_password"`
-	Status         status    `db:"status"`
-	Company        string    `db:"company"`
-	CreatedAt      time.Time `db:"created_at"`
-	UpdatedAt      time.Time `db:"updated_at"`
+	ID             int32     `db:"id" json:"id"`
+	Username       string    `db:"username" json:"username"`
+	HashedPassword string    `db:"hashed_password" json:"-"`
+	Status         status    `db:"status" json:""`
+	Company        string    `db:"company" json:"company"`
+	CreatedAt      time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt      time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type Group struct {
+	ID        int32     `db:"id" json:"id"`
+	Name      string    `db:"group_name" json:"group_name"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
@@ -37,17 +44,29 @@ func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {
 }
 
 func (s *Store) CheckUserExists(ctx context.Context, username string) bool {
-	user, err := s.driver.GetUser(ctx, username)
+	user, err := s.driver.GetUserByUsername(ctx, username)
 	if err != nil {
 		return false
 	}
 	return user.Username == username
 }
 
-func (s *Store) GetUser(ctx context.Context, username string) (*User, error) {
-	return s.driver.GetUser(ctx, username)
+func (s *Store) GetUserByID(ctx context.Context, u_id int32) (*User, error) {
+	return s.driver.GetUserByID(ctx, u_id)
+}
+
+func (s *Store) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	return s.driver.GetUserByUsername(ctx, username)
 }
 
 func (s *Store) AddUserToCache(username string) {
 	s.users.Store(username, true)
+}
+
+func (s *Store) GetAllGroups(ctx context.Context) []Group {
+	return s.driver.GetGroups(ctx)
+}
+
+func (s *Store) JoinGroup(ctx context.Context, g_id, u_id int32) error {
+	return s.driver.JoinGroup(ctx, g_id, u_id)
 }
