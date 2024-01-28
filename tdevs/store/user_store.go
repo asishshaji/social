@@ -16,6 +16,8 @@ const (
 type User struct {
 	ID             int32     `db:"id" json:"id"`
 	Username       string    `db:"username" json:"username"`
+	Bio            string    `db:"bio" json:"bio"`
+	Avatar         string    `db:"avatar" json:"avatar"`
 	HashedPassword string    `db:"hashed_password" json:"-"`
 	Status         status    `db:"status" json:""`
 	Company        string    `db:"company" json:"company"`
@@ -26,8 +28,16 @@ type User struct {
 type Group struct {
 	ID        int32     `db:"id" json:"id"`
 	Name      string    `db:"group_name" json:"group_name"`
+	Desc      string    `db:"group_bio" json:"description"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+	CreatorID int32     `db:"creator_id" json:"creator_id"`
+}
+
+type MemberShip struct {
+	ID       int32     `db:"id" json:"id"`
+	UserID   int32     `db:"user_id" json:"user_id"`
+	GroupID  int32     `db:"group_id" json:"group_id"`
+	JoinedAt time.Time `db:"joined_at" json:"joined_at"`
 }
 
 func (s *Store) CreateUser(ctx context.Context, user *User) (*User, error) {

@@ -7,6 +7,6 @@ type IDriver interface {
 	GetUserByUsername(context.Context, string) (*User, error)
 	GetUserByID(context.Context, int32) (*User, error)
 	GetGroups(ctx context.Context) []Group
-	GetGroupsForUser(ctx context.Context, user_id int32) []Group
+	GetGroupsForUser(ctx context.Context, user_id int32) ([]Group, error)
 	JoinGroup(context.Context, int32, int32) error
 }

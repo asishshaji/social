@@ -6,7 +6,7 @@ import (
 	"time"
 
 	petname "github.com/dustinkirkland/golang-petname"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -14,6 +14,7 @@ import (
 type SignUp struct {
 	Password string `json:"password"`
 	Company  string `json:"company"`
+	Bio      string `json:"bio"`
 }
 
 type Login struct {

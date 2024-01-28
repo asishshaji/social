@@ -3,6 +3,7 @@ package postgresql
 import (
 	"context"
 	"fmt"
+	"log"
 	"tdevs/store"
 )
 
@@ -20,8 +21,9 @@ func (postgres *PostgresDB) GetGroups(ctx context.Context) []store.Group {
 }
 
 func (postgres *PostgresDB) JoinGroup(ctx context.Context, g_id, u_id int32) error {
-	_, err := postgres.db.Exec("INSERT INTO user_group_relation(user_id, group_id) VALUES($1,$2)", u_id, g_id)
+	_, err := postgres.db.Exec("INSERT INTO memberships(user_id, group_id) SELECT $1,$2 WHERE NOT EXISTS(SELECT 1 FROM memberships WHERE user_id = $3 AND group_id = $4)", u_id, g_id, u_id, g_id)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 

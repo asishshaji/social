@@ -22,7 +22,7 @@ func jwt_custom_middleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			return echo.NewHTTPError(http.StatusForbidden, "you are not authorized")
 		}
-		u_id := claims["u_id"]
+		u_id := int32(claims["u_id"].(float64))
 		c.Set("u_id", u_id)
 
 		return next(c)
@@ -57,7 +57,7 @@ func (api *APIV1Service) JoinGroup(c echo.Context) error {
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusOK, g_id)
+	return c.JSON(http.StatusOK, map[string]string{})
 }
 
 func (api *APIV1Service) GetCurrentUser(c echo.Context) error {
